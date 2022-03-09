@@ -15,9 +15,16 @@ struct AHSR{
   int pitch,roll,yaw;
 };//Attitude and heading reference system
 
+struct ACC_GYRO_MAG{
+  float gyro_x, gyro_y, gyro_z;
+  float accel_x, accel_y, accel_z;
+  float mag_x, mag_y, mag_z;
+};//Containes values read from the IMU
+
 class IMU {
 
   AHSR ahsr;
+  ACC_GYRO_MAG acc_gyro_mag;
   TeensyICM20948 icm20948; //Actual IMU type used
   TeensyICM20948Settings icmSettings;
   //Filters used to get rid of outliers in reading yaw,pitch,roll
@@ -38,6 +45,7 @@ class IMU {
     int get_roll();
     int get_yaw();
     AHSR get_ahsr();
+    ACC_GYRO_MAG get_acc_gyro_mag();
   private:
     
 };

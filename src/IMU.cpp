@@ -21,6 +21,10 @@ IMU::IMU(){
 
 void IMU::updateSensors(){
   float quat_w, quat_x, quat_y, quat_z;
+
+  float gyro_x, gyro_y, gyro_z;
+  float accel_x, accel_y, accel_z;
+  float mag_x, mag_y, mag_z;
   // Must call this often in main loop -- updates the sensor values
   icm20948.task();
 
@@ -53,6 +57,49 @@ void IMU::updateSensors(){
     ahsr.yaw = myMedianYaw.getMedian();
 
   }
+
+  char sensor_string_buff[128];
+
+  if (icm20948.gyroDataIsReady())
+  {
+    icm20948.readGyroData(&gyro_x, &gyro_y, &gyro_z);
+    #if DEBUG_LEVEL > 2
+    sprintf(sensor_string_buff, "Gyro (deg/s): [%f,%f,%f]", gyro_x, gyro_y, gyro_z);
+    Serial.println(sensor_string_buff);
+    #endif
+
+    //TODO define if required or not a median filter
+    acc_gyro_mag.gyro_x = gyro_x;
+    acc_gyro_mag.gyro_y = gyro_y;
+    acc_gyro_mag.gyro_z = gyro_z;
+  }
+
+  if (icm20948.accelDataIsReady())
+  {
+    icm20948.readAccelData(&accel_x, &accel_y, &accel_z);
+    #if DEBUG_LEVEL > 2
+    sprintf(sensor_string_buff, "Accel (g): [%f,%f,%f]", accel_x, accel_y, accel_z);
+    Serial.println(sensor_string_buff);
+    #endif
+    //TODO define if required or not a median filter
+    acc_gyro_mag.accel_x = accel_x;
+    acc_gyro_mag.accel_y = accel_y;
+    acc_gyro_mag.accel_z = accel_z;
+  }
+
+  if (icm20948.magDataIsReady())
+  {
+    icm20948.readMagData(&mag_x, &mag_y, &mag_z);
+    #if DEBUG_LEVEL > 2
+    sprintf(sensor_string_buff, "Mag (uT): [%f,%f,%f]", mag_x, mag_y, mag_z);
+    Serial.println(sensor_string_buff);
+    #endif
+    //TODO define if required or not a median filter
+    acc_gyro_mag.mag_x = mag_x;
+    acc_gyro_mag.mag_y = mag_y;
+    acc_gyro_mag.mag_z = mag_z;
+  }
+
 }
 
 uint16_t IMU::check_stability(){
@@ -83,4 +130,8 @@ int IMU::get_yaw(){
 
 AHSR IMU::get_ahsr(){
   return ahsr;
+}
+
+ACC_GYRO_MAG IMU::get_acc_gyro_mag(){
+  return acc_gyro_mag;
 }

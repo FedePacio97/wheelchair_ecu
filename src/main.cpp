@@ -61,6 +61,7 @@ uint32_t ECU_EngineCU_notification,ECU_IMU_notification;
 //Used to access ahsr_IMU_updates
 SemaphoreHandle_t xSemaphore_mutex_send_IMU_updates;
 AHSR ahsr_IMU_updates = {0};
+ACC_GYRO_MAG acc_gyro_mag_IMU_updates = {0};
 
 /* Queue used to receive RPM messages from Joystick. */
 QueueHandle_t xRPM_From_Joystick_Queue = NULL;
@@ -534,6 +535,7 @@ void TaskIMUupdates(void *pvParameters)  // This is a task.
     //In this way, TaskSendStabilityInfoForScreen will extract the latest available info
     xSemaphoreTake( xSemaphore_mutex_send_IMU_updates, portMAX_DELAY );
     ahsr_IMU_updates = imu.get_ahsr();
+    acc_gyro_mag_IMU_updates = imu.get_acc_gyro_mag();
     xSemaphoreGive( xSemaphore_mutex_send_IMU_updates );
 
 
@@ -553,11 +555,13 @@ void TaskSendStabilityInfoForScreen(void *pvParameters)  // This is a task.
   Serial.printf("TaskSendStabilityInfoForScreen RUNNING");
 
   AHSR ahsr_received_from_IMU;
+  ACC_GYRO_MAG acc_gyro_mag_received_from_IMU;
   for (;;)
   {
 
     xSemaphoreTake( xSemaphore_mutex_send_IMU_updates, portMAX_DELAY );
     ahsr_received_from_IMU = ahsr_IMU_updates;
+    acc_gyro_mag_received_from_IMU = acc_gyro_mag_IMU_updates;
     xSemaphoreGive( xSemaphore_mutex_send_IMU_updates );
 
     Serial.printf("TaskSendStabilityInfoForScreen STILL RUNNING");
@@ -567,6 +571,16 @@ void TaskSendStabilityInfoForScreen(void *pvParameters)  // This is a task.
     stability_info_sent_on_BLE.OPCODE = STABILITY_INFO_OPCODE;
     stability_info_sent_on_BLE.stability_info.pitch = ahsr_received_from_IMU.pitch;
     stability_info_sent_on_BLE.stability_info.roll = ahsr_received_from_IMU.roll;
+
+    stability_info_sent_on_BLE.stability_info.accel_x = acc_gyro_mag_IMU_updates.accel_x;
+    stability_info_sent_on_BLE.stability_info.accel_y = acc_gyro_mag_IMU_updates.accel_y;
+    stability_info_sent_on_BLE.stability_info.accel_z = acc_gyro_mag_IMU_updates.accel_z;
+    stability_info_sent_on_BLE.stability_info.gyro_x = acc_gyro_mag_IMU_updates.gyro_x;
+    stability_info_sent_on_BLE.stability_info.gyro_y = acc_gyro_mag_IMU_updates.gyro_y;
+    stability_info_sent_on_BLE.stability_info.gyro_z = acc_gyro_mag_IMU_updates.gyro_z;
+    stability_info_sent_on_BLE.stability_info.mag_x = acc_gyro_mag_IMU_updates.mag_x;
+    stability_info_sent_on_BLE.stability_info.mag_y = acc_gyro_mag_IMU_updates.mag_y;
+    stability_info_sent_on_BLE.stability_info.mag_z = acc_gyro_mag_IMU_updates.mag_z;
     
     //send data via BLE
     esp_now_send(joystick_controller_MAC, (uint8_t *) &stability_info_sent_on_BLE, sizeof(Stability_message_sent_on_BLE));

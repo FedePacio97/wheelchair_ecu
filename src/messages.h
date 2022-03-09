@@ -74,6 +74,9 @@ struct RPM_message_sent_on_BLE{
 struct Stability_message{
     int pitch;
     int roll;
+    float gyro_x, gyro_y, gyro_z;
+    float accel_x, accel_y, accel_z;
+    float mag_x, mag_y, mag_z;
 };
 
 struct Stability_message_sent_on_BLE{
