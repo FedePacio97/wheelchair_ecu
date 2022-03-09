@@ -108,6 +108,12 @@ void setup() {
       //buzz();
       //abort
   }
+  if( xSemaphore_mutex_send_IMU_updates == NULL )
+  {
+      // The semaphore wasn't created successfully
+      //buzz();
+      //abort
+  }
 
   // Now set up two tasks to run independently.
   xTaskCreatePinnedToCore(
