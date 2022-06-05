@@ -67,7 +67,9 @@ void OnDataRecvJoystickController(const uint8_t * mac, const uint8_t *incomingDa
 //For this reason, we just signal the receiver putting the mex in his queue
 void OnDataRecvEngineCUController(const uint8_t * mac, const uint8_t *incomingData, int len) {
     //read opcode
+    #if DEBUG_LEVEL > 1
     Serial.printf("Received opcode %d\n",received_OPCODE);
+    #endif
     memcpy(&received_OPCODE, incomingData, sizeof(uint8_t));
     
     if(received_OPCODE == RPM_REFERENCE_OPCODE){
@@ -77,6 +79,9 @@ void OnDataRecvEngineCUController(const uint8_t * mac, const uint8_t *incomingDa
         RPM_message rpm_message_received;
         rpm_message_received.RPM_LX = rpm_message_on_BLE->rpm.RPM_LX;
         rpm_message_received.RPM_RX = rpm_message_on_BLE->rpm.RPM_RX;
+
+        //
+        //Serial.printf("rpm_message_received %d\n",rpm_message_received.RPM_LX);
         //send to queue handled by TaskWheelchairMovement
         xQueueSend( // The handle of the queue.
                xRPM_From_Joystick_Queue,

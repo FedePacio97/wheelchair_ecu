@@ -13,6 +13,7 @@
 
 */
 
+//#define DEBUG_LEVEL 2
 
 #if CONFIG_FREERTOS_UNICORE
 #define ARDUINO_RUNNING_CORE 0
@@ -25,19 +26,20 @@
 #endif
 
 //#define PLOTTING 1
+//#define PLOTTING 
 
 #ifdef PLOTTING
 //For plotting
 #include "Plotter.h"
 Plotter p; // create plotter
-int RPM_RX_plotting, RPM_LX_plotting;
+float ACC_X, ACC_Y;
 #endif
 
-// define ECU object
+//define ECU object
 ECU ecu;
 // define InterfaceEngineCU object
 InterfaceEngineCU interfaceEngineCU;
-// define IMU object
+// // define IMU object
 IMU imu;
 
 // define two tasks for Blink & AnalogRead
@@ -66,15 +68,26 @@ ACC_GYRO_MAG acc_gyro_mag_IMU_updates = {0};
 /* Queue used to receive RPM messages from Joystick. */
 QueueHandle_t xRPM_From_Joystick_Queue = NULL;
 
+//For debugging purpose
+#define VESC_RX_LED 26
+#define VESC_LX_LED 25
+#define REMOTE_CONTROLLER_LED 32
+
+
+
 // the setup function runs once when you press reset or power the board
 void setup() {
   
   // initialize serial communication at 115200 bits per second:
   #ifdef PLOTTING
   p.Begin(); // start plotter
-  p.AddTimeGraph( "RPM", 4500, "rx", RPM_RX_plotting, "lx", RPM_LX_plotting ); // add any graphs you want
+  p.AddTimeGraph( "ACC", 4500, "acc_x", ACC_X, "acc_y", ACC_Y ); // add any graphs you want
   #else
   Serial.begin(115200);
+  #endif
+
+  #if DEBUG_LEVEL > 1
+  Serial.println("Gnamo!");
   #endif
 
 
@@ -115,15 +128,19 @@ void setup() {
       //abort
   }
 
+  pinMode(VESC_RX_LED, OUTPUT);
+  pinMode(VESC_LX_LED, OUTPUT);
+  pinMode(REMOTE_CONTROLLER_LED, OUTPUT);
+
   // Now set up two tasks to run independently.
-  xTaskCreatePinnedToCore(
-    TaskBlink
-    ,  "TaskBlink"   // A name just for humans
-    ,  1024  // This stack size can be checked & adjusted by reading the Stack Highwater
-    ,  NULL
-    ,  2  // Priority, with 3 (configMAX_PRIORITIES - 1) being the highest, and 0 being the lowest.
-    ,  NULL 
-    ,  ARDUINO_RUNNING_CORE);
+  // xTaskCreatePinnedToCore(
+  //   TaskBlink
+  //   ,  "TaskBlink"   // A name just for humans
+  //   ,  1024  // This stack size can be checked & adjusted by reading the Stack Highwater
+  //   ,  NULL
+  //   ,  2  // Priority, with 3 (configMAX_PRIORITIES - 1) being the highest, and 0 being the lowest.
+  //   ,  NULL 
+  //   ,  ARDUINO_RUNNING_CORE);
 
   xTaskCreatePinnedToCore(
     TaskIMUupdates
@@ -160,6 +177,9 @@ void setup() {
     ,  1  // Priority
     ,  NULL
     ,  ARDUINO_RUNNING_CORE);
+
+
+
 
   /*xTaskCreatePinnedToCore(
     TaskCheckAlivenessEngineCU
@@ -232,7 +252,7 @@ void TaskHandleWheelchairMovement(void *pvParameters)  // This is a task.
 */
 
   RPM_message rpm_message;
-  uint32_t current_ECU_ROBOTEQ_notification = 0, current_ECU_IMU_notification = 0;
+  uint32_t current_ECU_IMU_notification = 0;
   for (;;)
   {
 
@@ -243,10 +263,10 @@ void TaskHandleWheelchairMovement(void *pvParameters)  // This is a task.
     ECU_IMU_notification = 0;
     xSemaphoreGive( xSemaphore_mutex_ECU_IMU_notification );
 
-    if(current_ECU_ROBOTEQ_notification == 0 && current_ECU_IMU_notification == 0){
+    if(current_ECU_IMU_notification == 0){
       //No pending notification -timed out before a notification was received
       //Behave in the normal way
-      #if DEBUG_LEVEL > 1
+      #if DEBUG_LEVEL > 2
       Serial.printf("[TaskHandleWheelchairMovement]: No notifications\n");
       #endif
 
@@ -261,18 +281,20 @@ void TaskHandleWheelchairMovement(void *pvParameters)  // This is a task.
                          &( rpm_message ),
                          0) == pdPASS)
         {
+          #if DEBUG_LEVEL > 1
           Serial.printf("[RECEIVED] RPM_lx %d \t RPM_rx %d\n",rpm_message.RPM_LX, rpm_message.RPM_RX);
-          /*if(rpm_message.RPM_LX > 2000)
-            rpm_message.RPM_LX = 2000;
-          if(rpm_message.RPM_LX < -2000)
-            rpm_message.RPM_LX = -2000;
+          #endif
 
-          if(rpm_message.RPM_RX > 2000)
-            rpm_message.RPM_RX = 2000;
-          if(rpm_message.RPM_RX < -2000)
-            rpm_message.RPM_RX = -2000;*/
+          // if( (rpm_message.RPM_LX == 0) && (rpm_message.RPM_RX==0) ){
+          //   //The user wants to stop
+          //   //should check if real RPM are 0. In case they go negative (check how to get it), set brake
+          // }else{
+          //   //classic behaviour
+          //   interfaceEngineCU.set_RPM_motors(rpm_message.RPM_LX,rpm_message.RPM_RX);
+          // }
 
           interfaceEngineCU.set_RPM_motors(rpm_message.RPM_LX,rpm_message.RPM_RX);
+          
         }
       }
     
@@ -281,12 +303,15 @@ void TaskHandleWheelchairMovement(void *pvParameters)  // This is a task.
       //Side effect of branch else:
       //If notifications are detected, the ECU doesn't send commands to motors.
       //Positive since dangerous situation
+      #if DEBUG_LEVEL > 1
       Serial.printf("[TaskHandleWheelchairMovement]: NOTIFICATION!\n");
+      #endif
 
       if(current_ECU_IMU_notification == WHEELCHAIR_RISK_OVERTURNING_PITCH){ //Sent by the IMU task
         //The wheelchair is about to overturn
+        #if DEBUG_LEVEL > 1
         Serial.printf("[TaskHandleWheelchairMovement]: Received WHEELCHAIR_RISK_OVERTURNING_PITCH\n");
-        
+        #endif
           //DO SOMETHING!
           //TRY TO SPIN THE MOTOR IN OPPOSITE DIRECTION
           //ALERT ON SCREEN TO PUSH RED BUTTON
@@ -294,15 +319,21 @@ void TaskHandleWheelchairMovement(void *pvParameters)  // This is a task.
         
       }else if(current_ECU_IMU_notification == WHEELCHAIR_RISK_OVERTURNING_ROLL){ //Sent by the IMU task
         //The wheelchair is about to overturn
+        #if DEBUG_LEVEL > 1
         Serial.printf("[TaskHandleWheelchairMovement]: Received WHEELCHAIR_RISK_OVERTURNING_ROLL\n");
+        #endif
 
       }else if(current_ECU_IMU_notification == WHEELCHAIR_OVERTURNED_PITCH){ //Sent by the IMU task
         //The wheelchair is overturned
+        #if DEBUG_LEVEL > 1
         Serial.printf("[TaskHandleWheelchairMovement]: Received WHEELCHAIR_OVERTURNED_PITCH\n");
+        #endif
   
       }else if(current_ECU_IMU_notification == WHEELCHAIR_OVERTURNED_ROLL){ //Sent by the IMU task
         //The wheelchair is overturned
+        #if DEBUG_LEVEL > 1
         Serial.printf("[TaskHandleWheelchairMovement]: Received WHEELCHAIR_OVERTURNED_ROLL\n");
+        #endif
 
       }
     }
@@ -391,7 +422,7 @@ void TaskHandleWheelchairMovement(void *pvParameters)  // This is a task.
     int sensorValueA3 = analogRead(A3);
     // print out the value you read:
     Serial.println(sensorValueA3);*/
-    vTaskDelay(25/portTICK_PERIOD_MS);  // 50ms delay == 1/(50 * 10^-3) = 20Hz
+    vTaskDelay(15/portTICK_PERIOD_MS);  // 50ms delay == 1/(10 * 10^-3) = 100Hz
   }
 }
 
@@ -455,7 +486,6 @@ void TaskCheckAlivenessEngineCU(void *pvParameters)  // This is a task.
 {
   (void) pvParameters;
   
-  /*
   TaskCheckAlivenessEngineCU
   Used to check if within interfaceEngineCU_ECU.KEEP_ALIVE_PERIOD_ms at least a mex has been received from the EngineCU: if not so, something wrong is happening
   so enable security_stop_procedure
@@ -519,7 +549,9 @@ void TaskIMUupdates(void *pvParameters)  // This is a task.
     uint16_t stability_result = imu.check_stability();
     if(stability_result == WHEELCHAIR_STABLE){
       //Correct behaviour
+      #if DEBUG_LEVEL > 1
       Serial.printf("[TaskIMUupdates] Wheelchair is stable!\n");
+      #endif
     }else{
       //Uncorrect behaviour
       //Send a "notification" to the TaskHandleWheelchairMovement
@@ -528,7 +560,9 @@ void TaskIMUupdates(void *pvParameters)  // This is a task.
       ECU_IMU_notification = stability_result;
       xSemaphoreGive( xSemaphore_mutex_ECU_IMU_notification );
       
+      #if DEBUG_LEVEL > 1
       Serial.printf("[TaskIMUupdates] Wheelchair is NOT STABLE!\n");
+      #endif
 
 
     }
@@ -558,8 +592,6 @@ void TaskSendStabilityInfoForScreen(void *pvParameters)  // This is a task.
 
 */
 
-  Serial.printf("TaskSendStabilityInfoForScreen RUNNING");
-
   AHSR ahsr_received_from_IMU;
   ACC_GYRO_MAG acc_gyro_mag_received_from_IMU;
   for (;;)
@@ -570,24 +602,34 @@ void TaskSendStabilityInfoForScreen(void *pvParameters)  // This is a task.
     acc_gyro_mag_received_from_IMU = acc_gyro_mag_IMU_updates;
     xSemaphoreGive( xSemaphore_mutex_send_IMU_updates );
 
-    Serial.printf("TaskSendStabilityInfoForScreen STILL RUNNING");
-
     //send info to wheelchair_joystick_screen
     Stability_message_sent_on_BLE stability_info_sent_on_BLE;
     stability_info_sent_on_BLE.OPCODE = STABILITY_INFO_OPCODE;
     stability_info_sent_on_BLE.stability_info.pitch = ahsr_received_from_IMU.pitch;
     stability_info_sent_on_BLE.stability_info.roll = ahsr_received_from_IMU.roll;
 
-    stability_info_sent_on_BLE.stability_info.accel_x = acc_gyro_mag_IMU_updates.accel_x;
-    stability_info_sent_on_BLE.stability_info.accel_y = acc_gyro_mag_IMU_updates.accel_y;
-    stability_info_sent_on_BLE.stability_info.accel_z = acc_gyro_mag_IMU_updates.accel_z;
-    stability_info_sent_on_BLE.stability_info.gyro_x = acc_gyro_mag_IMU_updates.gyro_x;
-    stability_info_sent_on_BLE.stability_info.gyro_y = acc_gyro_mag_IMU_updates.gyro_y;
-    stability_info_sent_on_BLE.stability_info.gyro_z = acc_gyro_mag_IMU_updates.gyro_z;
-    stability_info_sent_on_BLE.stability_info.mag_x = acc_gyro_mag_IMU_updates.mag_x;
-    stability_info_sent_on_BLE.stability_info.mag_y = acc_gyro_mag_IMU_updates.mag_y;
-    stability_info_sent_on_BLE.stability_info.mag_z = acc_gyro_mag_IMU_updates.mag_z;
-    
+    stability_info_sent_on_BLE.stability_info.accel_x = acc_gyro_mag_received_from_IMU.accel_x;
+    stability_info_sent_on_BLE.stability_info.accel_y = acc_gyro_mag_received_from_IMU.accel_y;
+    stability_info_sent_on_BLE.stability_info.accel_z = acc_gyro_mag_received_from_IMU.accel_z;
+    stability_info_sent_on_BLE.stability_info.gyro_x = acc_gyro_mag_received_from_IMU.gyro_x;
+    stability_info_sent_on_BLE.stability_info.gyro_y = acc_gyro_mag_received_from_IMU.gyro_y;
+    stability_info_sent_on_BLE.stability_info.gyro_z = acc_gyro_mag_received_from_IMU.gyro_z;
+    stability_info_sent_on_BLE.stability_info.mag_x = acc_gyro_mag_received_from_IMU.mag_x;
+    stability_info_sent_on_BLE.stability_info.mag_y = acc_gyro_mag_received_from_IMU.mag_y;
+    stability_info_sent_on_BLE.stability_info.mag_z = acc_gyro_mag_received_from_IMU.mag_z;
+
+    #ifdef PLOTTING
+    ACC_X = stability_info_sent_on_BLE.stability_info.accel_x;
+    ACC_Y = stability_info_sent_on_BLE.stability_info.accel_y;
+    #endif
+
+    #if DEBUG_LEVEL > 2
+    Serial.printf("pitch %d \t roll %d\naccX %f\taccY %f\taccZ %f\ngyroX %f\tgyroY %f\tgyroZ %f\nmagX %f\tmagY %f\tmagZ %f\n",
+    stability_info_sent_on_BLE.stability_info.pitch, stability_info_sent_on_BLE.stability_info.roll,
+    stability_info_sent_on_BLE.stability_info.accel_x, stability_info_sent_on_BLE.stability_info.accel_y, stability_info_sent_on_BLE.stability_info.accel_z,
+    stability_info_sent_on_BLE.stability_info.gyro_x, stability_info_sent_on_BLE.stability_info.gyro_y, stability_info_sent_on_BLE.stability_info.gyro_z,
+    stability_info_sent_on_BLE.stability_info.mag_x, stability_info_sent_on_BLE.stability_info.mag_y, stability_info_sent_on_BLE.stability_info.mag_z);
+    #endif
     //send data via BLE
     esp_now_send(joystick_controller_MAC, (uint8_t *) &stability_info_sent_on_BLE, sizeof(Stability_message_sent_on_BLE));
 

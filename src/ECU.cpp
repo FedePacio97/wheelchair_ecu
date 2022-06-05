@@ -58,25 +58,37 @@ void ECU::update_angular_reference_speed_rear_wheels(){
     Serial.printf("Joystick module -> %d\t degree -> %f\n",module,degree);
   #endif
 
-  if(degree >= 0 && degree <=90 ){ //QUADRANT 1 [0,90] 
-    angular_speed_rear_wheels.omega_right = module * map(degree, 0, 90, -1 * MAX_ANGULAR_SPEED, MAX_ANGULAR_SPEED );
-    angular_speed_rear_wheels.omega_left = module * MAX_ANGULAR_SPEED;
-    return;
-  }
-  if(degree >= 90 && degree <= 180){ //QUADRANT 2 ]90,180]
-      angular_speed_rear_wheels.omega_right = module * MAX_ANGULAR_SPEED;
-      angular_speed_rear_wheels.omega_left = module * map(degree,180, 90,-1 * MAX_ANGULAR_SPEED, MAX_ANGULAR_SPEED);
-      return;
-  }
-  if(degree >= -180 && degree <= -90){ //QUADRANT 3 [-180,-90]
-      angular_speed_rear_wheels.omega_right = module * map(degree,-90, -180,-1 * MAX_ANGULAR_SPEED, MAX_ANGULAR_SPEED);
-      angular_speed_rear_wheels.omega_left = -1 * module * MAX_ANGULAR_SPEED;   
-      return;
-  }
-  if(degree > -90 && degree < 0){ //QUADRANT 4 [-90,0[
-      angular_speed_rear_wheels.omega_right = -1 * module * MAX_ANGULAR_SPEED;
-      angular_speed_rear_wheels.omega_left = module * map(degree,0, -90,MAX_ANGULAR_SPEED, -1 * MAX_ANGULAR_SPEED);
-  }
+  float degtorad=PI/180;
+
+  float klong=1;
+
+  float klat=0.5;
+
+ 
+
+  angular_speed_rear_wheels.omega_right = module*(klong*MAX_ANGULAR_SPEED*sin(degree*degtorad)+klat*MAX_ANGULAR_SPEED*cos(degree*degtorad));
+
+  angular_speed_rear_wheels.omega_left = module*(klong*MAX_ANGULAR_SPEED*sin(degree*degtorad)-klat*MAX_ANGULAR_SPEED*cos(degree*degtorad));
+
+  // if(degree >= 0 && degree <=90 ){ //QUADRANT 1 [0,90] 
+  //   angular_speed_rear_wheels.omega_right = module * map(degree, 0, 90, -1 * MAX_ANGULAR_SPEED, MAX_ANGULAR_SPEED );
+  //   angular_speed_rear_wheels.omega_left = module * MAX_ANGULAR_SPEED;
+  //   return;
+  // }
+  // if(degree >= 90 && degree <= 180){ //QUADRANT 2 ]90,180]
+  //     angular_speed_rear_wheels.omega_right = module * MAX_ANGULAR_SPEED;
+  //     angular_speed_rear_wheels.omega_left = module * map(degree,180, 90,-1 * MAX_ANGULAR_SPEED, MAX_ANGULAR_SPEED);
+  //     return;
+  // }
+  // if(degree >= -180 && degree <= -90){ //QUADRANT 3 [-180,-90]
+  //     angular_speed_rear_wheels.omega_right = module * map(degree,-90, -180,-1 * MAX_ANGULAR_SPEED, MAX_ANGULAR_SPEED);
+  //     angular_speed_rear_wheels.omega_left = -1 * module * MAX_ANGULAR_SPEED;   
+  //     return;
+  // }
+  // if(degree > -90 && degree < 0){ //QUADRANT 4 [-90,0[
+  //     angular_speed_rear_wheels.omega_right = -1 * module * MAX_ANGULAR_SPEED;
+  //     angular_speed_rear_wheels.omega_left = module * map(degree,0, -90,MAX_ANGULAR_SPEED, -1 * MAX_ANGULAR_SPEED);
+  // }
   
 
 }

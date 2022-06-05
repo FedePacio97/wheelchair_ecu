@@ -1,14 +1,15 @@
 #include "IMU.h"
 
+
 IMU::IMU(){
   icmSettings =
   {
     .cs_pin = 33,                   // SPI chip select pin
     .spi_speed = 7000000,           // SPI clock speed in Hz, max speed is 7MHz
     .mode = 1,                      // 0 = low power mode, 1 = high performance mode
-    .enable_gyroscope = false,      // Enables gyroscope output
-    .enable_accelerometer = false,  // Enables accelerometer output
-    .enable_magnetometer = false,   // Enables magnetometer output
+    .enable_gyroscope = true,      // Enables gyroscope output
+    .enable_accelerometer = true,  // Enables accelerometer output
+    .enable_magnetometer = true,   // Enables magnetometer output
     .enable_quaternion = true,      // Enables quaternion output
     .gyroscope_frequency = 1,       // Max frequency = 225, min frequency = 1
     .accelerometer_frequency = 1,   // Max frequency = 225, min frequency = 1
@@ -56,9 +57,25 @@ void IMU::updateSensors(){
     ahsr.pitch = myMedianPitch.getMedian();
     ahsr.yaw = myMedianYaw.getMedian();
 
+    //Serial.printf("Roll %d \t Pitch %d \t Yaw %d \n",ahsr.roll,ahsr.pitch,ahsr.yaw );
+
+    //Set corrections due to mounted position
+    //TODO should be dinamically adjust at the start
+    ahsr.roll+= 94;
+    ahsr.pitch+= 0;
+
+    //Invert pitch and roll due to new mounted position
+    int temp = ahsr.roll;
+    ahsr.roll = ahsr.pitch;
+    ahsr.pitch = temp;
+
+    //Serial.printf("Roll %d \t Pitch %d \t Yaw %d \n",ahsr.roll,ahsr.pitch,ahsr.yaw );
+
   }
 
+  #if DEBUG_LEVEL > 2
   char sensor_string_buff[128];
+  #endif
 
   if (icm20948.gyroDataIsReady())
   {
@@ -73,6 +90,7 @@ void IMU::updateSensors(){
     acc_gyro_mag.gyro_y = gyro_y;
     acc_gyro_mag.gyro_z = gyro_z;
   }
+    
 
   if (icm20948.accelDataIsReady())
   {

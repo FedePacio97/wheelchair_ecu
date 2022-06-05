@@ -39,6 +39,10 @@ InterfaceEngineCU::InterfaceEngineCU(){
 //Used to signal the presence of rpm motor values
 extern TaskHandle_t xHandlerOfTaskCheckConsistencyAmongRPM_IMUvelocity;
 
+//For debugging purpose
+#define VESC_RX_LED 26
+#define VESC_LX_LED 25
+
 bool InterfaceEngineCU::retrieve_motors_info(Telemetry_info_from_VESC &VESC_LX_info, Telemetry_info_from_VESC &VESC_RX_info){
     bool received_info_lx = false, received_info_rx = false;
     received_info_lx = VESC_LX.getVescValues();
@@ -58,28 +62,40 @@ bool InterfaceEngineCU::retrieve_motors_info(Telemetry_info_from_VESC &VESC_LX_i
         memcpy(&VESC_LX_info, &VESC_LX.data, sizeof(VESC_LX_info));
         memcpy(&VESC_RX_info, &VESC_RX.data, sizeof(VESC_RX_info));
 
-    }else
-    {
-        if(!received_info_lx)
-            Serial.println("Failed to get data from VESC_LX!");
-        if(!received_info_rx)
-            Serial.println("Failed to get data from VESC_RX!");
     }
+
+    if(!received_info_lx){
+        #if DEBUG_LEVEL > 1
+        Serial.println("Failed to get data from VESC_LX!");
+        #endif
+        digitalWrite(VESC_LX_LED, LOW);
+    }  
+    else
+        digitalWrite(VESC_LX_LED, HIGH);
+        
+    if(!received_info_rx){
+        #if DEBUG_LEVEL > 1
+        Serial.println("Failed to get data from VESC_RX!");
+        #endif
+        digitalWrite(VESC_RX_LED, LOW);
+    }  
+    else
+        digitalWrite(VESC_RX_LED, HIGH);
 
     return received_info_lx & received_info_rx;
 }
 
 bool InterfaceEngineCU::set_RPM_motors(int RPM_motor_lx, int RPM_motor_rx){
 
-    bool ok = VESC_LX.setRPM(RPM_motor_lx);
-    if(!ok){
-        //Something is wrong.. it will be detected by the watchdog on EngineCU aliveness
-        return false;
-    }
+    bool ok_lx = VESC_LX.setRPM(RPM_motor_lx);
+    // if(!ok){
+    //     Something is wrong.. it will be detected by the watchdog on EngineCU aliveness
+    //     return false;
+    // }
 
-    ok = VESC_RX.setRPM(RPM_motor_rx);
+    bool ok_rx = VESC_RX.setRPM(RPM_motor_rx);
 
-    return ok;
+    return ok_lx & ok_rx;
 }
 
 void InterfaceEngineCU::set_received_message_within_keep_alive_period(){
@@ -119,7 +135,9 @@ void InterfaceEngineCU::initialize_serial_ports_for_UART_communication_with_VESC
 void InterfaceEngineCU::initialize_bluetooth_communication_with_joystick(){
     WiFi.mode(WIFI_MODE_STA);
     delay(10);
+    #if DEBUG_LEVEL > 1
     Serial.println(WiFi.macAddress());
+    #endif
     // Init ESP-NOW
     if (esp_now_init() != ESP_OK) {
         Serial.println("Error initializing ESP-NOW");
