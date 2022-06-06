@@ -16,12 +16,12 @@ InterfaceEngineCU::InterfaceEngineCU(){
     //VESC_LX.getVescValues();
     //VESC_RX.getVescValues();
 
-    //Serial.println(VESC_LX.data.rpm);
+    //Serial.println(VESC_LX.data.current);
     //Serial.println(UART.data.inpVoltage);
     //Serial.println(UART.data.ampHours);
     //Serial.println(UART.data.tachometerAbs);
 
-    //Serial.println(VESC_RX.data.rpm);
+    //Serial.println(VESC_RX.data.current);
     
 
     /* Create a mutex type semaphore. */
@@ -36,7 +36,7 @@ InterfaceEngineCU::InterfaceEngineCU(){
 
 }
 
-//Used to signal the presence of rpm motor values
+//Used to signal the presence of current motor values
 extern TaskHandle_t xHandlerOfTaskCheckConsistencyAmongRPM_IMUvelocity;
 
 //For debugging purpose
@@ -53,9 +53,9 @@ bool InterfaceEngineCU::retrieve_motors_info(Telemetry_info_from_VESC &VESC_LX_i
         //Signal the task which performs the consistency check between RPM and CURRENT IMU VELOCITY
         //xTaskNotify( xHandlerOfTaskCheckConsistencyAmongRPM_IMUvelocity, dummy_32_bit, eSetValueWithOverwrite  );
         
-            //Serial.println(VESC_LX.data.rpm);
+            //Serial.println(VESC_LX.data.current);
 
-            //Serial.println(VESC_RX.data.rpm);
+            //Serial.println(VESC_RX.data.current);
         //Set the variable stating EngineCU is still alive
             //set_received_message_within_keep_alive_period();
 
@@ -96,6 +96,16 @@ bool InterfaceEngineCU::set_RPM_motors(int RPM_motor_lx, int RPM_motor_rx){
     bool ok_rx = VESC_RX.setRPM(RPM_motor_rx);
 
     return ok_lx & ok_rx;
+}
+
+void InterfaceEngineCU::set_CURRENT_motors(float CURRENT_motor_lx, float CURRENT_motor_rx){
+
+    VESC_LX.setCurrent(CURRENT_motor_lx);
+
+    VESC_RX.setCurrent(CURRENT_motor_rx);
+
+    return;
+
 }
 
 void InterfaceEngineCU::set_received_message_within_keep_alive_period(){

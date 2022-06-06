@@ -74,20 +74,20 @@ void OnDataRecvEngineCUController(const uint8_t * mac, const uint8_t *incomingDa
     
     if(received_OPCODE == RPM_REFERENCE_OPCODE){
         //extract info
-        RPM_message_sent_on_BLE* rpm_message_on_BLE = (RPM_message_sent_on_BLE*) incomingData;
+        CURRENT_message_sent_on_BLE* current_message_on_BLE = (CURRENT_message_sent_on_BLE*) incomingData;
 
-        RPM_message rpm_message_received;
-        rpm_message_received.RPM_LX = rpm_message_on_BLE->rpm.RPM_LX;
-        rpm_message_received.RPM_RX = rpm_message_on_BLE->rpm.RPM_RX;
+        CURRENT_message current_message_received;
+        current_message_received.RPM_LX = current_message_on_BLE->current.RPM_LX;
+        current_message_received.RPM_RX = current_message_on_BLE->current.RPM_RX;
 
         //
-        //Serial.printf("rpm_message_received %d\n",rpm_message_received.RPM_LX);
+        //Serial.printf("current_message_received %d\n",current_message_received.RPM_LX);
         //send to queue handled by TaskWheelchairMovement
         xQueueSend( // The handle of the queue.
-               xRPM_From_Joystick_Queue,
+               xCURRENT_From_Joystick_Queue,
                // The address of the xMessage variable.  sizeof( struct AMessage )
                //bytes are copied from here into the queue.
-               ( void * ) &rpm_message_received,
+               ( void * ) &current_message_received,
                // Block time of 0 says don't block if the queue is already full.
                //Check the value returned by xQueueSend() to know if the message
                //was sent to the queue successfully.

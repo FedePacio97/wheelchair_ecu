@@ -9,7 +9,7 @@
 #define wheelchair_engineCU_IMU_controller 1
 
 #ifdef wheelchair_engineCU_IMU_controller
-extern QueueHandle_t xRPM_From_Joystick_Queue;
+extern QueueHandle_t xCURRENT_From_Joystick_Queue;
 #endif
 
 #ifdef wheelchair_joystick_screen_controller
@@ -43,7 +43,7 @@ struct Telemetry_info_from_VESC{
   float avgMotorCurrent;
   float avgInputCurrent;
   float dutyCycleNow;
-  long rpm;
+  long current;
   float inpVoltage;
   float ampHours;
   float ampHoursCharged;
@@ -61,14 +61,14 @@ struct Message_received_on_BLE {
     int8_t PAYLOAD[100];
 };
 
-struct RPM_message {
-    int RPM_LX;
-    int RPM_RX;
+struct CURRENT_message {
+    float RPM_LX;
+    float RPM_RX;
 };
 
-struct RPM_message_sent_on_BLE{
+struct CURRENT_message_sent_on_BLE{
     uint8_t OPCODE;
-    RPM_message rpm;
+    CURRENT_message current;
 };
 
 struct Stability_message{

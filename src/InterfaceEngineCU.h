@@ -36,6 +36,8 @@ class InterfaceEngineCU {
 
     bool set_RPM_motors(int RPM_motor_lx, int RPM_motor_rx);
 
+    void set_CURRENT_motors(float CURRENT_motor_lx, float CURRENT_motor_rx);
+
     void set_received_message_within_keep_alive_period();
     void reset_received_message_within_keep_alive_period();
 

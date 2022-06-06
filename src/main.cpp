@@ -66,7 +66,7 @@ AHSR ahsr_IMU_updates = {0};
 ACC_GYRO_MAG acc_gyro_mag_IMU_updates = {0};
 
 /* Queue used to receive RPM messages from Joystick. */
-QueueHandle_t xRPM_From_Joystick_Queue = NULL;
+QueueHandle_t xCURRENT_From_Joystick_Queue = NULL;
 
 //For debugging purpose
 #define VESC_RX_LED 26
@@ -95,12 +95,12 @@ void setup() {
 
   //Initialize buzzer queue
   // Create the queue used to send complete struct BuzzerMessage structures.
-  xRPM_From_Joystick_Queue = xQueueCreate(
+  xCURRENT_From_Joystick_Queue = xQueueCreate(
                          // The number of items the queue can hold. 
                          10,
                          // Size of each item is big enough to hold the
                          //whole structure.
-                         sizeof(RPM_message) );
+                         sizeof(CURRENT_message) );
 
   interfaceEngineCU.initialize_bluetooth_communication_with_joystick();
                      
@@ -251,7 +251,7 @@ void TaskHandleWheelchairMovement(void *pvParameters)  // This is a task.
     send RPM values to VESCs via UART
 */
 
-  RPM_message rpm_message;
+  CURRENT_message current_message;
   uint32_t current_ECU_IMU_notification = 0;
   for (;;)
   {
@@ -270,30 +270,30 @@ void TaskHandleWheelchairMovement(void *pvParameters)  // This is a task.
       Serial.printf("[TaskHandleWheelchairMovement]: No notifications\n");
       #endif
 
-      if( xRPM_From_Joystick_Queue != NULL )
+      if( xCURRENT_From_Joystick_Queue != NULL )
       {
-        /* Receive a message from the created queue to hold complex struct RPM_message
+        /* Receive a message from the created queue to hold complex struct CURRENT_message
         structure.  Do not block otherwise notifications may be missed.
-        The value is read into a struct RPM_message variable, so after calling
-        xQueueReceive() rpm_message will hold a copy of xMessage, in case a message has been found in the queue. */
+        The value is read into a struct CURRENT_message variable, so after calling
+        xQueueReceive() current_message will hold a copy of xMessage, in case a message has been found in the queue. */
         if(
-          xQueueReceive( xRPM_From_Joystick_Queue, 
-                         &( rpm_message ),
+          xQueueReceive( xCURRENT_From_Joystick_Queue, 
+                         &( current_message ),
                          0) == pdPASS)
         {
           #if DEBUG_LEVEL > 1
-          Serial.printf("[RECEIVED] RPM_lx %d \t RPM_rx %d\n",rpm_message.RPM_LX, rpm_message.RPM_RX);
+          Serial.printf("[RECEIVED] CURRENT_lx %f \t CURRENT_rx %d\n",current_message.RPM_LX, current_message.RPM_RX);
           #endif
 
-          // if( (rpm_message.RPM_LX == 0) && (rpm_message.RPM_RX==0) ){
+          // if( (current_message.RPM_LX == 0) && (current_message.RPM_RX==0) ){
           //   //The user wants to stop
           //   //should check if real RPM are 0. In case they go negative (check how to get it), set brake
           // }else{
           //   //classic behaviour
-          //   interfaceEngineCU.set_RPM_motors(rpm_message.RPM_LX,rpm_message.RPM_RX);
+          //   interfaceEngineCU.set_RPM_motors(current_message.RPM_LX,current_message.RPM_RX);
           // }
 
-          interfaceEngineCU.set_RPM_motors(rpm_message.RPM_LX,rpm_message.RPM_RX);
+          interfaceEngineCU.set_CURRENT_motors(current_message.RPM_LX,current_message.RPM_RX);
           
         }
       }
@@ -447,11 +447,13 @@ void TaskCheckAndHandleMotorsParameters(void *pvParameters)  // This is a task.
       telemetry_sent_on_BLE.OPCODE = TELEMETRY_OPCODE;
       //Calculate costant for km
       telemetry_sent_on_BLE.telemetry_message.km = ( (VESC_LX_info.tachometerAbs + VESC_RX_info.tachometerAbs)/2 ) / TACHOMETER_MOTOR_PER_WHEEL_ROUND * (2 * PI * R) / 1000; ///1000 since km
-      //rpm = Erpm * pole_pairs
+      //current = Ecurrent * pole_pairs
       //Vehicle speed [km/h]= 0.1885 * Wheel RPM * diameter of the tire
       //RPM_motor * Radius_motor [m] = RPM_wheel * Radius_wheel [m]
       //find wheel RPM from RPM of motor
-      telemetry_sent_on_BLE.telemetry_message.speed = ( (VESC_LX_info.rpm / 14 * 0.062 / 0.6) + (VESC_RX_info.rpm / 14 * 0.062 / 0.6) ) / 2;
+
+      //TODO USE a GAUGE on the screen TO SHOW THE ACTUAL CURRENT CONSUMPTION
+      telemetry_sent_on_BLE.telemetry_message.speed = 0; //( (VESC_LX_info.current / 14 * 0.062 / 0.6) + (VESC_RX_info.current / 14 * 0.062 / 0.6) ) / 2;
 
       //Battery level = current_voltage * 100 / max_voltage_battery
       //Fully charged battery = 29.2 V
@@ -470,8 +472,8 @@ void TaskCheckAndHandleMotorsParameters(void *pvParameters)  // This is a task.
       Serial.printf("Tachometer ABS LX%f\n",VESC_LX_info.tachometerAbs);
       Serial.printf("Tachometer ABS RX%f\n",VESC_RX_info.tachometerAbs);
 
-      Serial.printf("rpm LX%f\n",VESC_LX_info.rpm);
-      Serial.printf("rpm RX%f\n",VESC_RX_info.rpm);
+      Serial.printf("current LX%f\n",VESC_LX_info.current);
+      Serial.printf("current RX%f\n",VESC_RX_info.current);
       */
 
 
@@ -643,10 +645,10 @@ void TaskCheckConsistencyAmongRPM_IMUvelocity(void *pvParameters)  // This is a 
   
   
   //TaskCheckConsistencyAmongRPM_IMUvelocity
-  //Used to check if received rpm from EngineCU is consistent with IMU measurements: 
+  //Used to check if received current from EngineCU is consistent with IMU measurements: 
   //if not so, something wrong is happening so enable security_stop_procedure.
 
-  //E.g: rolling != 0, velocity != while rpm = 0..
+  //E.g: rolling != 0, velocity != while current = 0..
 
   
 
@@ -661,8 +663,8 @@ void TaskCheckConsistencyAmongRPM_IMUvelocity(void *pvParameters)  // This is a 
     vTaskDelayUntil( &xLastWakeTime, interfaceEngineCU_ECU.get_CONSISTENCY_CHECKING_PERIOD_ms()/portTICK_PERIOD_MS ); //Fixed time execution at KEEP_ALIVE_PERIOD_ms (1000ms by default) rate
 
     // Perform action here
-    //Ask for rpm
-    interfaceEngineCU_ECU.request_rpm_motors();
+    //Ask for current
+    interfaceEngineCU_ECU.request_current_motors();
     //Wait for response
     //CHECK IF PENDING NOTIFICATION
     xTaskNotifyWait(
@@ -674,10 +676,10 @@ void TaskCheckConsistencyAmongRPM_IMUvelocity(void *pvParameters)  // This is a 
     //Whatever ulNotifiedValue is ok, just unblock from Wait()
 
     //Parse
-    int current_rpm_motor_LX = interfaceEngineCU_ECU.get_rpm_motor_LX();
-    int current_rpm_motor_RX = interfaceEngineCU_ECU.get_rpm_motor_RX();
+    int current_current_motor_LX = interfaceEngineCU_ECU.get_current_motor_LX();
+    int current_current_motor_RX = interfaceEngineCU_ECU.get_current_motor_RX();
 
-    Serial.printf("[TaskCheckConsistencyAmongRPM_IMUvelocity] current_rpm_motor_LX -> %d \t current_rpm_motor_RX -> %d\n",current_rpm_motor_LX,current_rpm_motor_RX);
+    Serial.printf("[TaskCheckConsistencyAmongRPM_IMUvelocity] current_current_motor_LX -> %d \t current_current_motor_RX -> %d\n",current_current_motor_LX,current_current_motor_RX);
     //GET IMU VALUES
   }
 }*/
