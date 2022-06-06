@@ -40,7 +40,8 @@ ECU ecu;
 // define InterfaceEngineCU object
 InterfaceEngineCU interfaceEngineCU;
 // // define IMU object
-IMU imu;
+//TODO REACTIVATE
+//IMU imu;
 
 // define two tasks for Blink & AnalogRead
 void TaskBlink( void *pvParameters );
@@ -90,8 +91,10 @@ void setup() {
   Serial.println("Gnamo!");
   #endif
 
+  //TODO REACTIVATE
+  //interfaceEngineCU.initialize_serial_ports_for_UART_communication_with_VESCs();
 
-  interfaceEngineCU.initialize_serial_ports_for_UART_communication_with_VESCs();
+  Serial.println(WiFi.macAddress());
 
   //Initialize buzzer queue
   // Create the queue used to send complete struct BuzzerMessage structures.
@@ -102,6 +105,7 @@ void setup() {
                          //whole structure.
                          sizeof(CURRENT_message) );
 
+  //TODO reactivate
   interfaceEngineCU.initialize_bluetooth_communication_with_joystick();
                      
 
@@ -142,15 +146,16 @@ void setup() {
   //   ,  NULL 
   //   ,  ARDUINO_RUNNING_CORE);
 
-  xTaskCreatePinnedToCore(
-    TaskIMUupdates
-    ,  "IMUupdates"
-    ,  2048  // Stack size
-    ,  NULL
-    ,  1  // Priority
-    ,  NULL 
-    ,  ARDUINO_RUNNING_CORE);
-  
+//TODO REACTIVATE
+      // xTaskCreatePinnedToCore(
+      //   TaskIMUupdates
+      //   ,  "IMUupdates"
+      //   ,  2048  // Stack size
+      //   ,  NULL
+      //   ,  1  // Priority
+      //   ,  NULL 
+      //   ,  ARDUINO_RUNNING_CORE);
+  //TODO REACTIVATE
   xTaskCreatePinnedToCore(
     TaskHandleWheelchairMovement
     ,  "HandleWheelchairMovement"
@@ -160,23 +165,25 @@ void setup() {
     ,  &xHandlerOfTaskHandleWheelchairMovement 
     ,  ARDUINO_RUNNING_CORE);
 
-  xTaskCreatePinnedToCore(
-    TaskCheckAndHandleMotorsParameters
-    ,  "CheckAndHandleMotorsParameters"
-    ,  2048  // Stack size
-    ,  NULL
-    ,  1  // Priority
-    ,  NULL
-    ,  ARDUINO_RUNNING_CORE);
+  //TODO REACTIVATE
+  // xTaskCreatePinnedToCore(
+  //   TaskCheckAndHandleMotorsParameters
+  //   ,  "CheckAndHandleMotorsParameters"
+  //   ,  2048  // Stack size
+  //   ,  NULL
+  //   ,  1  // Priority
+  //   ,  NULL
+  //   ,  ARDUINO_RUNNING_CORE);
 
-  xTaskCreatePinnedToCore(
-    TaskSendStabilityInfoForScreen
-    ,  "SendStabilityInfoForScreen"
-    ,  2048  // Stack size
-    ,  NULL
-    ,  1  // Priority
-    ,  NULL
-    ,  ARDUINO_RUNNING_CORE);
+  //TODO REACTIVATE
+  // xTaskCreatePinnedToCore(
+  //   TaskSendStabilityInfoForScreen
+  //   ,  "SendStabilityInfoForScreen"
+  //   ,  2048  // Stack size
+  //   ,  NULL
+  //   ,  1  // Priority
+  //   ,  NULL
+  //   ,  ARDUINO_RUNNING_CORE);
 
 
 
@@ -281,19 +288,20 @@ void TaskHandleWheelchairMovement(void *pvParameters)  // This is a task.
                          &( current_message ),
                          0) == pdPASS)
         {
-          #if DEBUG_LEVEL > 1
-          Serial.printf("[RECEIVED] CURRENT_lx %f \t CURRENT_rx %d\n",current_message.RPM_LX, current_message.RPM_RX);
-          #endif
+          //#if DEBUG_LEVEL > 1
+          Serial.printf("[RECEIVED] CURRENT_lx %f \t CURRENT_rx %f\n",current_message.CURRENT_LX, current_message.CURRENT_RX);
+          //#endif
 
-          // if( (current_message.RPM_LX == 0) && (current_message.RPM_RX==0) ){
+          // if( (current_message.CURRENT_LX == 0) && (current_message.CURRENT_RX==0) ){
           //   //The user wants to stop
           //   //should check if real RPM are 0. In case they go negative (check how to get it), set brake
           // }else{
           //   //classic behaviour
-          //   interfaceEngineCU.set_RPM_motors(current_message.RPM_LX,current_message.RPM_RX);
+          //   interfaceEngineCU.set_RPM_motors(current_message.CURRENT_LX,current_message.CURRENT_RX);
           // }
 
-          interfaceEngineCU.set_CURRENT_motors(current_message.RPM_LX,current_message.RPM_RX);
+          //TODO REACTIVATE
+          //interfaceEngineCU.set_CURRENT_motors(current_message.CURRENT_LX,current_message.CURRENT_RX);
           
         }
       }
@@ -367,8 +375,8 @@ void TaskHandleWheelchairMovement(void *pvParameters)  // This is a task.
       int RPM_rx = ecu.get_reference_RPM_rx();
 
       #ifdef PLOTTING
-      RPM_LX_plotting = RPM_lx;
-      RPM_RX_plotting = RPM_rx;
+      CURRENT_LX_plotting = RPM_lx;
+      CURRENT_RX_plotting = RPM_rx;
       #endif
 
       //Serial.printf("reference_linear_speed %f\t reference_angular_speed%f\n",reference_linear_speed,reference_angular_speed);
@@ -520,69 +528,70 @@ void TaskCheckAlivenessEngineCU(void *pvParameters)  // This is a task.
   }
 }*/
 
-void TaskIMUupdates(void *pvParameters)  // This is a task.
-{
-  (void) pvParameters;
+//TODO REACTIVATE
+// void TaskIMUupdates(void *pvParameters)  // This is a task.
+// {
+//   (void) pvParameters;
   
-  /*
-  TaskIMUupdates
-  Retrieve values from IMU
-  If stability issue is detected -> signal to TaskHandleWheelchairMovement
-  Make available latest IMU values
-  */
+//   /*
+//   TaskIMUupdates
+//   Retrieve values from IMU
+//   If stability issue is detected -> signal to TaskHandleWheelchairMovement
+//   Make available latest IMU values
+//   */
   
   
-  //TaskIMUupdates
-  //Handles IMU updates and check if pitch and roll are below safe thresholds: if not so, send notification to ECU
+//   //TaskIMUupdates
+//   //Handles IMU updates and check if pitch and roll are below safe thresholds: if not so, send notification to ECU
 
 
-  TickType_t xLastWakeTime;
-  // Initialise the xLastWakeTime variable with the current time.
-  xLastWakeTime = xTaskGetTickCount();
+//   TickType_t xLastWakeTime;
+//   // Initialise the xLastWakeTime variable with the current time.
+//   xLastWakeTime = xTaskGetTickCount();
 
-  for (;;)
-  {
-    // Wait for the next cycle.
-    vTaskDelayUntil( &xLastWakeTime, 20/portTICK_PERIOD_MS ); //Fixed time execution at KEEP_ALIVE_PERIOD_ms (1000ms by default) rate
-    //May execute at rate of 1/50ms, i.e 20Hz
+//   for (;;)
+//   {
+//     // Wait for the next cycle.
+//     vTaskDelayUntil( &xLastWakeTime, 20/portTICK_PERIOD_MS ); //Fixed time execution at KEEP_ALIVE_PERIOD_ms (1000ms by default) rate
+//     //May execute at rate of 1/50ms, i.e 20Hz
 
-    // Perform action here
-    imu.updateSensors();
-    uint16_t stability_result = imu.check_stability();
-    if(stability_result == WHEELCHAIR_STABLE){
-      //Correct behaviour
-      #if DEBUG_LEVEL > 1
-      Serial.printf("[TaskIMUupdates] Wheelchair is stable!\n");
-      #endif
-    }else{
-      //Uncorrect behaviour
-      //Send a "notification" to the TaskHandleWheelchairMovement
-      //Extract ECU_IMU_notification
-      xSemaphoreTake( xSemaphore_mutex_ECU_IMU_notification, portMAX_DELAY );
-      ECU_IMU_notification = stability_result;
-      xSemaphoreGive( xSemaphore_mutex_ECU_IMU_notification );
+//     // Perform action here
+//     imu.updateSensors();
+//     uint16_t stability_result = imu.check_stability();
+//     if(stability_result == WHEELCHAIR_STABLE){
+//       //Correct behaviour
+//       #if DEBUG_LEVEL > 1
+//       Serial.printf("[TaskIMUupdates] Wheelchair is stable!\n");
+//       #endif
+//     }else{
+//       //Uncorrect behaviour
+//       //Send a "notification" to the TaskHandleWheelchairMovement
+//       //Extract ECU_IMU_notification
+//       xSemaphoreTake( xSemaphore_mutex_ECU_IMU_notification, portMAX_DELAY );
+//       ECU_IMU_notification = stability_result;
+//       xSemaphoreGive( xSemaphore_mutex_ECU_IMU_notification );
       
-      #if DEBUG_LEVEL > 1
-      Serial.printf("[TaskIMUupdates] Wheelchair is NOT STABLE!\n");
-      #endif
+//       #if DEBUG_LEVEL > 1
+//       Serial.printf("[TaskIMUupdates] Wheelchair is NOT STABLE!\n");
+//       #endif
 
 
-    }
+//     }
     
-    //Send in queue pitch, roll (and yaw, not currently used by screen) for TaskSendStabilityInfoForScreen
-    //In truth, we use only a shared variable since TaskIMUupdates runs as faster as possible so it will fulfill the queue very soon.
-    //Moreover, it is a waste o CPU time to make TaskSendStabilityInfoForScreen run as fast as TaskIMUupdates since we are not interested in updating
-    //the screen so fast.
+//     //Send in queue pitch, roll (and yaw, not currently used by screen) for TaskSendStabilityInfoForScreen
+//     //In truth, we use only a shared variable since TaskIMUupdates runs as faster as possible so it will fulfill the queue very soon.
+//     //Moreover, it is a waste o CPU time to make TaskSendStabilityInfoForScreen run as fast as TaskIMUupdates since we are not interested in updating
+//     //the screen so fast.
 
-    //In this way, TaskSendStabilityInfoForScreen will extract the latest available info
-    xSemaphoreTake( xSemaphore_mutex_send_IMU_updates, portMAX_DELAY );
-    ahsr_IMU_updates = imu.get_ahsr();
-    acc_gyro_mag_IMU_updates = imu.get_acc_gyro_mag();
-    xSemaphoreGive( xSemaphore_mutex_send_IMU_updates );
+//     //In this way, TaskSendStabilityInfoForScreen will extract the latest available info
+//     xSemaphoreTake( xSemaphore_mutex_send_IMU_updates, portMAX_DELAY );
+//     ahsr_IMU_updates = imu.get_ahsr();
+//     acc_gyro_mag_IMU_updates = imu.get_acc_gyro_mag();
+//     xSemaphoreGive( xSemaphore_mutex_send_IMU_updates );
 
 
-  }
-}
+//   }
+// }
 
 void TaskSendStabilityInfoForScreen(void *pvParameters)  // This is a task.
 {

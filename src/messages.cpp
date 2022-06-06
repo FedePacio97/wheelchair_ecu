@@ -19,9 +19,9 @@ void OnDataRecvJoystickController(const uint8_t * mac, const uint8_t *incomingDa
     //read opcode
     memcpy(&received_OPCODE, incomingData, sizeof(uint8_t));
 
-    #if DEBUG_LEVEL > 1
+    //#if DEBUG_LEVEL > 1
     Serial.printf("[MEX RECEIVED] %d\n",received_OPCODE);
-    #endif
+    //#endif
     
     if(received_OPCODE == TELEMETRY_OPCODE){
         //extract info
@@ -77,11 +77,11 @@ void OnDataRecvEngineCUController(const uint8_t * mac, const uint8_t *incomingDa
         CURRENT_message_sent_on_BLE* current_message_on_BLE = (CURRENT_message_sent_on_BLE*) incomingData;
 
         CURRENT_message current_message_received;
-        current_message_received.RPM_LX = current_message_on_BLE->current.RPM_LX;
-        current_message_received.RPM_RX = current_message_on_BLE->current.RPM_RX;
+        current_message_received.CURRENT_LX = current_message_on_BLE->current.CURRENT_LX;
+        current_message_received.CURRENT_RX = current_message_on_BLE->current.CURRENT_RX;
 
         //
-        //Serial.printf("current_message_received %d\n",current_message_received.RPM_LX);
+        //Serial.printf("current_message_received %d\n",current_message_received.CURRENT_LX);
         //send to queue handled by TaskWheelchairMovement
         xQueueSend( // The handle of the queue.
                xCURRENT_From_Joystick_Queue,
