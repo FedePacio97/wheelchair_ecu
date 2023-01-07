@@ -43,3 +43,12 @@ The system is composed of two sub-systems:
 |-------------|----------------|
 | (RX) GPIO16 |       TX       |
 | (TX) GPIO17 |       RX       |
+
+# How to use
+
+Assumption: This code has been developed using Platformio extension on VS Code. Even though you could compile this project using whatever toolchain is compatible with ESP32 hw, it is recommended to priorly install Platformio and set-up its toolchain for ESP32. Reference: https://randomnerdtutorials.com/vs-code-platformio-ide-esp32-esp8266-arduino/
+
+1. Clone this repository
+2. Import this project using Platformio wizard
+3. Compile the project
+4. Flash the compiled project onto an ESP32
