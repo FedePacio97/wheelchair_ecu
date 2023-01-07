@@ -87,15 +87,15 @@ bool InterfaceEngineCU::retrieve_motors_info(Telemetry_info_from_VESC &VESC_LX_i
 
 bool InterfaceEngineCU::set_RPM_motors(int RPM_motor_lx, int RPM_motor_rx){
 
-    bool ok_lx = VESC_LX.setRPM(RPM_motor_lx);
+    VESC_LX.setRPM(RPM_motor_lx);
     // if(!ok){
     //     Something is wrong.. it will be detected by the watchdog on EngineCU aliveness
     //     return false;
     // }
 
-    bool ok_rx = VESC_RX.setRPM(RPM_motor_rx);
+    VESC_RX.setRPM(RPM_motor_rx);
 
-    return ok_lx & ok_rx;
+    return true;
 }
 
 void InterfaceEngineCU::set_received_message_within_keep_alive_period(){

@@ -106,32 +106,14 @@ void Joystick::apply_median_filter(int read_x,int read_y,int& filtered_x, int& f
 }
 
 void Joystick::sample_potentiometer_values(){
-    /*
-    int current_potentiometer_value_Y = GPIO_INPUT_GET(joystick_Y_pin);
-    int current_potentiometer_value_X = GPIO_INPUT_GET(joystick_X_pin);
-    */
-
-    /*int current_potentiometer_value_Y = analogRead(joystick_Y_pin);
-    int current_potentiometer_value_X = analogRead(joystick_X_pin);*/
-
-    
+   
     int read_x = analogRead(joystick_X_pin);
     int read_y = analogRead(joystick_Y_pin);
 
     #if DEBUG_LEVEL > 1
     Serial.printf("read_x X %d \t read_Y %d\n",read_x,read_y);
     #endif
-
-    /*
-    //REMOVE NOISE
-    median_potentiometer_X.addValue(read_x);
-    median_potentiometer_Y.addValue(read_y);
-
-    int current_potentiometer_value_X = median_potentiometer_X.getMedian(); // retieves the median
-    int current_potentiometer_value_Y = median_potentiometer_Y.getMedian(); // retieves the median
-    */
-
-    
+   
     int current_potentiometer_value_X,current_potentiometer_value_Y;
     apply_median_filter(read_x,read_y,current_potentiometer_value_X,current_potentiometer_value_Y);
 
@@ -168,14 +150,6 @@ Joystick::Joystick(gpio_num_t Y_pin,gpio_num_t X_pin,unsigned int minimum_variat
     joystick_Y_pin = Y_pin;
     joystick_X_pin = X_pin;
 
-    /*
-    gpio_reset_pin(joystick_Y_pin);
-    gpio_reset_pin(joystick_X_pin);
-
-    gpio_set_direction(joystick_Y_pin, GPIO_MODE_INPUT);
-    gpio_set_direction(joystick_X_pin, GPIO_MODE_INPUT);
-    */
-
     /*CHANGE INTO analogRead() and pinMode()*/
     pinMode(joystick_Y_pin,INPUT_PULLUP);
     pinMode(joystick_X_pin,INPUT_PULLUP);
@@ -202,50 +176,8 @@ int Joystick::get_Y_potentiometer_value(){
 
 //Initial calibration and then auto-calibration when reading is > thresholds
 void Joystick::calibrate_joystick(){
-  Serial.printf("Start calibration\n");
-  /*Serial.printf("RIGHT\n");
-  buzz();
-  start_millis = millis();
-  while( (millis() - start_millis) < 1000 * 10){
-    x = analogRead(joystick_X_pin);
-
-    if(x > ABSOLUTE_MAX_X){
-      ABSOLUTE_MAX_X = x;
-      Serial.printf("MAX_X %u\n",ABSOLUTE_MAX_X);
-    }
-  }
-  Serial.printf("LEFT\n");
-  buzz();
-  start_millis = millis();
-  while( (millis() - start_millis) < 1000 * 10){
-    x = analogRead(joystick_X_pin);
-    if(x < ABSOLUTE_MIN_X){
-      ABSOLUTE_MIN_X = x;
-      Serial.printf("MIN _X %u\n",ABSOLUTE_MIN_X);
-    }
-  }
-  Serial.printf("UP\n");
-  buzz();
-  start_millis = millis();
-  while( (millis() - start_millis) < 1000 * 10){
-    y = analogRead(joystick_Y_pin);
-
-    if(y > ABSOLUTE_MAX_Y){
-      ABSOLUTE_MAX_Y = y;
-      Serial.printf("MAX_Y %u\n",ABSOLUTE_MAX_Y);
-    }
-  }
-  Serial.printf("DOWN\n");
-  buzz();
-  start_millis = millis();
-  while( (millis() - start_millis) < 1000 * 10){
-    y = analogRead(joystick_Y_pin);
-    if(y < ABSOLUTE_MIN_Y){
-      ABSOLUTE_MIN_Y = y;
-      Serial.printf("MIN_Y %u\n",ABSOLUTE_MIN_Y);
-    }
-  }*/
-  //buzz();
+    Serial.printf("Start calibration\n");
+    //buzz();
     unsigned long start_millis = millis();
     uint16_t x,y, ABS_MAX_X = 0, ABS_MAX_Y = 0, ABS_MIN_X = UINT16_MAX, ABS_MIN_Y = UINT16_MAX;
 
@@ -273,5 +205,49 @@ void Joystick::calibrate_joystick(){
     }
 
     Serial.printf("ABS_MAX_X %u\nABS_MIN_X %u\nABS_MAX_Y %u\nABS_MIN_Y %u\n",ABS_MAX_X,ABS_MIN_X,ABS_MAX_Y,ABS_MIN_Y);
+
+    //Old way to calibrate
+    /*Serial.printf("RIGHT\n");
+    buzz();
+    start_millis = millis();
+    while( (millis() - start_millis) < 1000 * 10){
+    x = analogRead(joystick_X_pin);
+
+    if(x > ABSOLUTE_MAX_X){
+        ABSOLUTE_MAX_X = x;
+        Serial.printf("MAX_X %u\n",ABSOLUTE_MAX_X);
+    }
+    }
+    Serial.printf("LEFT\n");
+    buzz();
+    start_millis = millis();
+    while( (millis() - start_millis) < 1000 * 10){
+    x = analogRead(joystick_X_pin);
+    if(x < ABSOLUTE_MIN_X){
+        ABSOLUTE_MIN_X = x;
+        Serial.printf("MIN _X %u\n",ABSOLUTE_MIN_X);
+    }
+    }
+    Serial.printf("UP\n");
+    buzz();
+    start_millis = millis();
+    while( (millis() - start_millis) < 1000 * 10){
+    y = analogRead(joystick_Y_pin);
+
+    if(y > ABSOLUTE_MAX_Y){
+        ABSOLUTE_MAX_Y = y;
+        Serial.printf("MAX_Y %u\n",ABSOLUTE_MAX_Y);
+    }
+    }
+    Serial.printf("DOWN\n");
+    buzz();
+    start_millis = millis();
+    while( (millis() - start_millis) < 1000 * 10){
+    y = analogRead(joystick_Y_pin);
+    if(y < ABSOLUTE_MIN_Y){
+        ABSOLUTE_MIN_Y = y;
+        Serial.printf("MIN_Y %u\n",ABSOLUTE_MIN_Y);
+    }
+    }*/
 
 }

@@ -12,43 +12,6 @@ ECU::ECU() : joystick(JOYSTICK_Y_PIN,JOYSTICK_X_PIN) /*, Accelerometer(), [...] 
   //MAX_RPM = DEFAULT_MAX_RPM;
 }
 
-/*
-void ECU::update_reference_RPM_rear_wheels(){
-  joystick.update_charthesian_coordinates();
-  int degree = joystick.get_discretized_degree();
-  float module = joystick.get_module();
-  
-  if(degree >= 0 && degree <=90 ){ //QUADRANT 1 [0,90] 
-    reference_RPM_rear_wheels.RPM_rx = module * map(degree, 0, 90, -1 * MAX_RPM, MAX_RPM );
-    reference_RPM_rear_wheels.RPM_lx = module * MAX_RPM;
-    return;
-  }
-  if(degree >= 90 && degree <= 180){ //QUADRANT 2 ]90,180]
-      reference_RPM_rear_wheels.RPM_rx = module * MAX_RPM;
-      reference_RPM_rear_wheels.RPM_lx = module * map(degree,180, 90,-1 * MAX_RPM, MAX_RPM);
-      return;
-  }
-  if(degree >= -180 && degree <= -90){ //QUADRANT 3 [-180,-90]
-      reference_RPM_rear_wheels.RPM_rx = module * map(degree,-90, -180,-1 * MAX_RPM, MAX_RPM);
-      reference_RPM_rear_wheels.RPM_lx = -1 * module * MAX_RPM;   
-      return;
-  }
-  if(degree > -90 && degree < 0){ //QUADRANT 4 [-90,0[
-      reference_RPM_rear_wheels.RPM_rx = -1 * module * MAX_RPM;
-      reference_RPM_rear_wheels.RPM_lx = module * map(degree,0, -90,MAX_RPM, -1 * MAX_RPM);
-  }
-  
-
-}
-
-int ECU::get_reference_RPM_lx(){
-  return reference_RPM_rear_wheels.RPM_lx;
-}
-
-int ECU::get_reference_RPM_rx(){
-  return reference_RPM_rear_wheels.RPM_rx;
-}*/
-
 void ECU::update_angular_reference_speed_rear_wheels(){
   joystick.update_charthesian_coordinates();
   int degree = joystick.get_discretized_degree();
@@ -65,7 +28,6 @@ void ECU::update_angular_reference_speed_rear_wheels(){
   float klat=0.5;
 
  
-
   angular_speed_rear_wheels.omega_right = module*(klong*MAX_ANGULAR_SPEED*sin(degree*degtorad)+klat*MAX_ANGULAR_SPEED*cos(degree*degtorad));
 
   angular_speed_rear_wheels.omega_left = module*(klong*MAX_ANGULAR_SPEED*sin(degree*degtorad)-klat*MAX_ANGULAR_SPEED*cos(degree*degtorad));
