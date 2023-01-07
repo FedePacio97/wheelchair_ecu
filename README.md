@@ -17,6 +17,14 @@ The system is composed of two sub-systems:
 
 ![System class diagram](https://drive.google.com/uc?export=view&id=1pjPUHj7t_G1Sb604eiz-txAvEPVVAKz3)
 
+# Sequence Diagram
+
+In the overall system, there are two main data flows:
+1. From joystick input to motors movement
+  ![System class diagram](https://drive.google.com/uc?export=view&id=1z1OiW0kqy_EKHjwZd9cRgtuoDTg44Q4y)
+2. From vesc monitoring to screen display
+  ![System class diagram](https://drive.google.com/uc?export=view&id=1LuR-bAJCD-wx0BIwP4440IlZg3YO8F5N)
+
 # Physical Implementation
 
 ![System class diagram](https://drive.google.com/uc?export=view&id=1IMJsm1ykFDSBgv9yRazRH47dvv3L1iyP)
