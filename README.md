@@ -8,7 +8,7 @@ This repository contains code that will be running on ESP32 and is in charge of 
 
 # System architecture
 
-![System architecture overview](https://drive.google.com/file/d/1jS1joBsyRPNTYBAfYW_id2PbQPkl7GWn/view?usp=share_link)
+![System architecture overview](https://drive.google.com/uc?export=view&id=1jS1joBsyRPNTYBAfYW_id2PbQPkl7GWn)
 
 The system is composed of two sub-systems:
 * wheelchair_ecu (code contained in this repo)
@@ -16,11 +16,11 @@ The system is composed of two sub-systems:
 
 # System Class diagram
 
-![System class diagram](https://drive.google.com/file/d/1pjPUHj7t_G1Sb604eiz-txAvEPVVAKz3/view?usp=share_link)
+![System class diagram](https://drive.google.com/uc?export=view&id=1pjPUHj7t_G1Sb604eiz-txAvEPVVAKz3)
 
 # Physical Implementation
 
-![System class diagram](https://drive.google.com/file/d/1IMJsm1ykFDSBgv9yRazRH47dvv3L1iyP/view?usp=share_link)
+![System class diagram](https://drive.google.com/uc?export=view&id=1IMJsm1ykFDSBgv9yRazRH47dvv3L1iyP)
 
 ## Pinout
 
