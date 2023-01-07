@@ -1,5 +1,5 @@
 # Wheelchair ECU
-This repository contains code that will be running on ESP32 and is in charge of handling the movment of a wheelchair.
+This repository contains code that will be running on ESP32 and is in charge of handling the movement of a wheelchair.
 # Needed components
 * Microcontroller Unit: ESP32
 * IMU: ICM-20948
