@@ -11,7 +11,7 @@ This repository contains code that will be running on ESP32 and is in charge of 
 
 The system is composed of two sub-systems:
 * wheelchair_ecu (code contained in this repo)
-* wheelchair_joystick_screen
+* wheelchair_joystick_screen (https://github.com/FedePacio97/wheelchair_joystick_screen)
 
 # System Class diagram
 
