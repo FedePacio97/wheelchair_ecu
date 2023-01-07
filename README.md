@@ -4,7 +4,6 @@ This repository contains code that will be running on ESP32 and is in charge of 
 * Microcontroller Unit: ESP32
 * IMU: ICM-20948
 * Engine Control Unit: 2x VESC 100 A
-* Joystick: 2-axis joystick
 
 # System architecture
 
